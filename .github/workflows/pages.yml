@@ -1,0 +1,47 @@
+name: Publish PoolRules website
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Find the app files
+        run: |
+          # works whether www is at the top of the repo or inside folders
+          WEB=$(find . -path ./node_modules -prune -o -path '*/www/index.html' -print | head -1)
+          if [ -z "$WEB" ]; then echo "No www/index.html found in the repo"; exit 1; fi
+          mkdir -p site
+          cp -r "$(dirname "$WEB")"/. site/
+          touch site/.nojekyll
+          ls site
+
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4
