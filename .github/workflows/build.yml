@@ -1,0 +1,87 @@
+name: Build PoolRules APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Create the Android project
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "com.bombarules.poolrules",
+            "appName": "PoolRules",
+            "webDir": "www",
+            "backgroundColor": "#22343f",
+            "server": { "hostname": "bombarules.github.io", "androidScheme": "https" },
+            "android": { "backgroundColor": "#22343f" }
+          }
+          JSON
+          npx cap add android
+          npx cap sync android
+
+      - name: Set the version, icons and signing key
+        run: |
+          # every build gets a higher version so it installs over the last one
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            cp icons/ic_launcher-$d.png android/app/src/main/res/mipmap-$d/ic_launcher.png
+            cp icons/ic_launcher_round-$d.png android/app/src/main/res/mipmap-$d/ic_launcher_round.png
+            cp icons/ic_launcher-$d.png android/app/src/main/res/mipmap-$d/ic_launcher_foreground.png
+          done
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          # the same signing key every time, so updates install without uninstalling
+          mkdir -p ~/.android
+          cp icons/debug.keystore ~/.android/debug.keystore
+
+      - name: Build the APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk PoolRules.apk
+
+      - name: Keep the APK as a download on this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: PoolRules-APK
+          path: PoolRules.apk
+
+      - name: Publish the APK for direct download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: PoolRules APK (latest)
+          prerelease: false
+          body: Open this page on your phone, tap PoolRules.apk, then open the file to install.
+          files: PoolRules.apk
+          overwrite_files: true
