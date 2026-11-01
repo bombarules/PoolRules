@@ -224,6 +224,21 @@ body.titling #top,body.titling #side,body.titling #camBtns,body.titling #dock,bo
 .boardItem .n b{font:700 22px/1 var(--fc)}
 .sw{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:6px}
 @media (max-width:620px){.panel{left:8px;right:8px;width:auto;top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);max-height:72vh;z-index:9}}
+
+/* inside a room */
+#roomBar{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + var(--topH) + 8px);display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;z-index:6}
+#roomBar b{display:block;font:600 18px/1.1 var(--fc)}#roomBar small{color:var(--dim);font-size:12.5px}
+#roomBar .btn{padding:9px 12px}
+body.inroom #dock,body.inroom #camBtns,body.inroom #side,body.inroom #labels,body.inroom #ticker{display:none!important}
+.eqcard{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);margin:8px 0;scroll-margin:8px}
+.eqcard.sel{outline:2px solid var(--sand)}
+.eqtop{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.eqtop b{font:600 16px/1.15 var(--fc)}.eqtop span{font:600 14px var(--fc);white-space:nowrap}
+.gbar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.eqcard .acts{margin-top:8px}
+.tip{font-size:12.5px!important}
+.plant .btn{white-space:nowrap}
+@media (max-width:620px){body.inroom .panel{max-height:46vh}}
 </style>
 </head>
 <body class="titling">
@@ -233,7 +248,7 @@ body.titling #top,body.titling #side,body.titling #camBtns,body.titling #dock,bo
 <div id="top">
   <button id="office" class="chip" aria-label="Open the pool board">
     <span class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="#f6efe4" stroke-width="2" stroke-linecap="round"><path d="M3 16c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 20c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M8 13V5a2 2 0 0 1 4 0M16 13V5a2 2 0 0 0-4 0M8 8h8"/></svg></span>
-    <span style="text-align:left;min-width:0"><div id="townName">Central Park Pools</div><div id="date" class="num">Day 1</div></span>
+    <span style="text-align:left;min-width:0"><div id="townName">Central Park Pools</div><div id="date" class="num">Day 1</div><div id="saveState" class="num" style="font:500 11.5px/1.2 var(--fc);color:var(--dim)"></div></span>
   </button>
   <div id="stats">
     <div class="chip stat"><b id="sSwim" class="num">0</b><span>Swimming now</span></div>
@@ -258,6 +273,7 @@ body.titling #top,body.titling #side,body.titling #camBtns,body.titling #dock,bo
 <div id="side">
   <button class="chip" id="bBoard" aria-label="Pool board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.4" fill="currentColor"/><circle cx="8" cy="12" r="1.4" fill="currentColor"/><circle cx="8" cy="18" r="1.4" fill="currentColor"/></svg><span class="count" id="cPools"></span></button>
   <button class="chip" id="bAlerts" aria-label="Pools that need attention"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l9 16H3zM12 10v4M12 17v.5"/></svg><span class="count" id="cAlerts"></span></button>
+  <button class="chip" id="bSave" aria-label="Saving"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg></button>
   <button class="chip" id="bLabels" aria-label="Show or hide pool labels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="9" r="4"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg></button>
 </div>
 
@@ -266,6 +282,8 @@ body.titling #top,body.titling #side,body.titling #camBtns,body.titling #dock,bo
   <div id="sub" class="chip hidden"></div>
   <div id="tools" class="chip"></div>
 </div>
+
+<div id="roomBar" class="chip hidden"><button class="btn ghost" id="rBack">&lsaquo; Map</button><span><b id="rTitle">Room</b><small id="rSub"></small></span></div>
 
 <section id="panel" class="panel chip hidden" role="dialog" aria-modal="false">
   <header><h2 id="pTitle">Pool</h2><button class="x" id="pClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
