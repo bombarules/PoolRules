@@ -15,6 +15,16 @@ jobs:
       - name: Get the code
         uses: actions/checkout@v4
 
+      - name: Find the app files
+        run: |
+          # works whether www and icons are at the top of the repo or inside folders
+          WEB=$(find . -path ./node_modules -prune -o -path '*/www/index.html' -print | head -1)
+          if [ -z "$WEB" ]; then echo "No www/index.html found in the repo"; exit 1; fi
+          APP=$(dirname "$(dirname "$WEB")")
+          echo "App files are in $APP"
+          if [ "$APP" != "." ]; then cp -r "$APP/www" "$APP/icons" . ; fi
+          ls www icons
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
